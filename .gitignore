@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# postal data source (large files)
+scripts/KEN_ALL.CSV
+scripts/ken_all.zip
