@@ -122,6 +122,11 @@ function getFlagSolution(flag: AddressFlag): string {
     POSTAL_MULTI_TOWN: '複数町域に該当するため町域は特定不可（要確認）',
     LABEL_HAS_ENGLISH: 'ラベルに英語が含まれています。日本語に変換してください',
     LABEL_HAS_COMMA: 'ラベルにカンマが含まれています。削除してください',
+    ENGLISH_BUILDING_ACCEPTED: '英語建物名が許容されました（対応不要）',
+    NEED_REVIEW_TOWN: '町域を確認してください（複数候補または不明確）',
+    AUTO_COMPLETED_FROM_POSTAL: '郵便番号から自動補完されました（対応不要）',
+    NUMBER_BLOCK_SINGLE_ACCEPTED: '単独番地として許容されました（対応不要）',
+    NEED_CUSTOMER_CONFIRM: '顧客に直接確認してください',
   };
   return solutions[flag];
 }

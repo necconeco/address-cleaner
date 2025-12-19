@@ -22,8 +22,17 @@ export type AddressFlag =
   | 'POSTAL_NOT_FOUND'
   | 'POSTAL_MISMATCH'
   | 'POSTAL_MULTI_TOWN'
+  | 'POSTAL_AMBIGUOUS'
   | 'LABEL_HAS_ENGLISH'
-  | 'LABEL_HAS_COMMA';
+  | 'LABEL_HAS_COMMA'
+  | 'ENGLISH_BUILDING_ACCEPTED'
+  | 'NEED_REVIEW_TOWN'
+  | 'AUTO_COMPLETED_FROM_POSTAL'
+  | 'NUMBER_BLOCK_SINGLE_ACCEPTED'
+  | 'NEED_CUSTOMER_CONFIRM'
+  | 'PHONE_IN_NUMBER_BLOCK'
+  | 'AUTO_ZERO_RESTORED_MOBILE'
+  | 'NEED_REVIEW_PHONE';
 
 // パース結果
 export interface ParsedAddress {
@@ -33,6 +42,7 @@ export interface ParsedAddress {
   prefecture: string;
   city: string;
   town: string;
+  chome: string;  // 丁目（数字のみ、例: "2"）
   number_block: string;
   building: string;
   room: string;
@@ -51,14 +61,32 @@ export interface InputRow {
 
 // 出力行（元列＋パース結果）
 export interface OutputRow extends ParsedAddress {
+  __rowId: string;
   _originalColumns?: Record<string, string>;
+  // 顧客確認が必要な場合の理由（編集可能）
+  customerConfirmReason?: string;
+  // 番地から検出された電話番号（移動先候補）
+  _detectedPhone?: string;
+  // 電話番号関連
+  _phone?: {
+    raw: string;
+    digits: string;
+    formatted: string;
+    flags: string[];
+  };
+  _name?: string;
+  _nameKana?: string;
 }
+
+// カテゴリタイプ
+export type CategoryType = 'all' | 'empty' | 'needs_fix' | 'ok' | 'customer_confirm';
 
 // フィルタ状態
 export interface FilterState {
   showOnlyFlagged: boolean;
   formatType: FormatType | 'all';
   quickFilter: AddressFlag | null;
+  category: CategoryType;
 }
 
 // 処理結果サマリー
@@ -72,3 +100,10 @@ export interface ProcessingSummary {
   error: number;
   successRate: number;
 }
+
+// 下書き（編集中の変更）
+export type DraftFields = Partial<Pick<OutputRow,
+  'prefecture' | 'city' | 'town' | 'chome' | 'number_block' | 'building' | 'room' | 'postal_code' | 'customerConfirmReason'
+>>;
+
+export type DraftRowsMap = Record<string, DraftFields>;

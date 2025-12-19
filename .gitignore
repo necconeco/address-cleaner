@@ -38,3 +38,8 @@ next-env.d.ts
 # postal data source (large files)
 scripts/KEN_ALL.CSV
 scripts/ken_all.zip
+# サンプル・テンプレートファイル
+*.xls
+*.xlsx
+yupack_sample.csv
+

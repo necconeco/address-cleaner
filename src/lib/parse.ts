@@ -1,17 +1,19 @@
 import { FormatType, AddressFlag } from '@/types';
 import { PREFECTURE_EN_TO_JA } from '@/constants/prefectureMap';
 import { BUILDING_SUFFIXES } from '@/constants/buildingSuffixes';
-import { extractPostalCode } from './normalize';
+import { extractPostalCode, detectPhoneNumber } from './normalize';
 
 interface ParseResult {
   prefecture: string;
   city: string;
   town: string;
+  chome: string;  // 丁目（数字のみ、例: "2"）
   number_block: string;
   building: string;
   room: string;
   postal_code: string;
   flags: AddressFlag[];
+  detectedPhone?: string; // 番地から検出された電話番号
 }
 
 /**
@@ -207,12 +209,13 @@ function parseGoogleMaps(address: string): ParseResult {
 
   // 6. 残りからroom/number_block/buildingを抽出
   const remainingStr = parts.join(' ');
-  const { room, number_block, building, roomBuildingFlags } =
+  const { room, number_block, building, roomBuildingFlags, detectedPhone } =
     extractRoomNumberBuilding(remainingStr);
 
   flags.push(...roomBuildingFlags);
 
-  if (!number_block) {
+  if (!number_block && !detectedPhone) {
+    // 電話番号が検出された場合はMISSING_NUMBER_BLOCKを追加しない（既にフラグが立っている）
     flags.push('MISSING_NUMBER_BLOCK');
   }
 
@@ -220,11 +223,13 @@ function parseGoogleMaps(address: string): ParseResult {
     prefecture,
     city,
     town: '',
+    chome: '',  // Google Mapsフォーマットでは未対応
     number_block,
     building,
     room,
     postal_code,
     flags,
+    detectedPhone,
   };
 }
 
@@ -271,12 +276,12 @@ function parseJapaneseFull(address: string): ParseResult {
   }
 
   // 5. room/number_block/buildingを抽出
-  const { room, number_block, building, roomBuildingFlags } =
+  const { room, number_block, building, roomBuildingFlags, detectedPhone } =
     extractRoomNumberBuilding(remaining);
 
   flags.push(...roomBuildingFlags);
 
-  if (!number_block) {
+  if (!number_block && !detectedPhone) {
     flags.push('MISSING_NUMBER_BLOCK');
   }
 
@@ -284,11 +289,13 @@ function parseJapaneseFull(address: string): ParseResult {
     prefecture,
     city,
     town,
+    chome: '',  // 日本語フルフォーマットでは未対応（将来的に実装可能）
     number_block,
     building,
     room,
     postal_code,
     flags,
+    detectedPhone,
   };
 }
 
@@ -303,9 +310,20 @@ function parseUnknown(address: string): ParseResult {
 
   // number_blockのみ試行
   const numberMatch = address.match(/\d+(-\d+){1,3}/);
-  const number_block = numberMatch ? numberMatch[0] : '';
+  let number_block = numberMatch ? numberMatch[0] : '';
+  let detectedPhone: string | undefined;
 
-  if (!number_block) {
+  // 電話番号検出
+  if (number_block) {
+    const phone = detectPhoneNumber(number_block);
+    if (phone) {
+      detectedPhone = phone;
+      flags.push('PHONE_IN_NUMBER_BLOCK');
+      number_block = '';
+    }
+  }
+
+  if (!number_block && !detectedPhone) {
     flags.push('MISSING_NUMBER_BLOCK');
   }
 
@@ -313,29 +331,34 @@ function parseUnknown(address: string): ParseResult {
     prefecture: '',
     city: '',
     town: '',
+    chome: '',  // Unknownフォーマットでは未対応
     number_block,
     building: '',
     room: '',
     postal_code,
     flags,
+    detectedPhone,
   };
 }
 
 /**
  * room/number_block/buildingを抽出
  * 処理順: room抽出→number_block→building
+ * 電話番号検出: number_block候補が電話番号っぽい場合は除外
  */
 function extractRoomNumberBuilding(text: string): {
   room: string;
   number_block: string;
   building: string;
   roomBuildingFlags: AddressFlag[];
+  detectedPhone?: string;
 } {
   const flags: AddressFlag[] = [];
   let remaining = text;
   let room = '';
   let number_block = '';
   let building = '';
+  let detectedPhone: string | undefined;
 
   // 1. room候補を先に抽出
   // パターン: #319, 3F, 3階, B1, 101号室, Room 5, Unit 12
@@ -470,5 +493,15 @@ function extractRoomNumberBuilding(text: string): {
     flags.push('NEED_REVIEW_NUMBER');
   }
 
-  return { room, number_block, building, roomBuildingFlags: flags };
+  // === 電話番号検出: number_blockが電話番号っぽい場合は除外 ===
+  if (number_block) {
+    const phone = detectPhoneNumber(number_block);
+    if (phone) {
+      detectedPhone = phone;
+      flags.push('PHONE_IN_NUMBER_BLOCK');
+      number_block = ''; // 番地から除外
+    }
+  }
+
+  return { room, number_block, building, roomBuildingFlags: flags, detectedPhone };
 }
