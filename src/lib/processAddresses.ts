@@ -7,7 +7,7 @@ import {
   normalizePostalCode,
   preloadPostalData,
 } from './postalLookup';
-import { normalizePhone, NormalizedPhone } from './phone';
+import { normalizePhone } from './phone';
 
 export interface ProcessOptions {
   enablePostalVerification?: boolean;

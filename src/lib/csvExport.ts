@@ -455,6 +455,7 @@ function toFullWidthAlphanumeric(str: string): string {
  * 半角: 0.5文字、全角: 1文字
  * ※佐川の制限は全角48文字 = 半角96文字相当
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getFullWidthLength(str: string): number {
   let len = 0;
   for (const char of str) {

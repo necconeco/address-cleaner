@@ -127,6 +127,10 @@ function getFlagSolution(flag: AddressFlag): string {
     AUTO_COMPLETED_FROM_POSTAL: '郵便番号から自動補完されました（対応不要）',
     NUMBER_BLOCK_SINGLE_ACCEPTED: '単独番地として許容されました（対応不要）',
     NEED_CUSTOMER_CONFIRM: '顧客に直接確認してください',
+    POSTAL_AMBIGUOUS: '郵便番号に複数候補がありますが、入力された住所を優先して処理しました（対応不要）',
+    PHONE_IN_NUMBER_BLOCK: '番地欄に電話番号が混入しています。電話番号欄に移動してください',
+    AUTO_ZERO_RESTORED_MOBILE: '携帯番号の0落ちを自動補正しました（対応不要）',
+    NEED_REVIEW_PHONE: '電話番号を確認してください（11桁以外または050）',
   };
   return solutions[flag];
 }

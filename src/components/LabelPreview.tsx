@@ -29,7 +29,7 @@ import ContactMailIcon from '@mui/icons-material/ContactMail';
 import { OutputRow, DraftFields } from '@/types';
 import { canAcceptEnglishBuilding } from '@/lib/revalidateFlags';
 import { CUSTOMER_CONFIRM_FLAGS } from '@/constants/flags';
-import { lookupPostalCode, verifyPostalCode, normalizeAddressForComparison, PostalLookupResult } from '@/lib/postalLookup';
+import { lookupPostalCode, verifyPostalCode, PostalLookupResult } from '@/lib/postalLookup';
 
 // 解析結果フィールドのラベル定義
 const RESULT_FIELD_LABELS: Record<string, string> = {
